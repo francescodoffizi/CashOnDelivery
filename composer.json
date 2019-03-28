@@ -2,7 +2,7 @@
     "name": "msp/cashondelivery",
     "description": "",
     "require": {
-        "php": "^7.0|^7.1",
+        "php": "^7.0|^7.1|^7.2",
         "msp/common": "*",
 
         "magento/magento-composer-installer": "*"

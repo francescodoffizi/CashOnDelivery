@@ -25,6 +25,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Tax\Api\TaxCalculationInterface;
 use Magento\Tax\Helper\Data as TaxHelper;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use MSP\CashOnDelivery\Api\CashondeliveryInterface;
 use MSP\CashOnDelivery\Api\CashondeliveryTableInterface;
 
@@ -36,19 +37,22 @@ class Cashondelivery implements CashondeliveryInterface
     protected $cashondeliveryTableInterface;
     protected $taxHelper;
     protected $taxCalculation;
+		protected $priceCurrencyInterface;
 
     public function __construct(
         ScopeConfigInterface $scopeConfigInterface,
         ObjectManagerInterface $objectManagerInterface,
         CashondeliveryTableInterface $cashondeliveryTableInterface,
         TaxHelper $taxHelper,
-        TaxCalculationInterface $taxCalculationInterface
+        TaxCalculationInterface $taxCalculationInterface,
+				PriceCurrencyInterface $priceCurrencyInterface
     ) {
         $this->scopeConfigInterface = $scopeConfigInterface;
         $this->objectManagerInterface = $objectManagerInterface;
         $this->cashondeliveryTableInterface = $cashondeliveryTableInterface;
         $this->taxHelper = $taxHelper;
         $this->taxCalculation = $taxCalculationInterface;
+				$this->priceCurrencyInterface = $priceCurrencyInterface;
     }
 
     /**
@@ -115,6 +119,44 @@ class Cashondelivery implements CashondeliveryInterface
         return $this->cashondeliveryTableInterface->getFee($calcBase, $country, $region);
     }
 
+		/**
+     * Calculate rated tax amount based on price and tax rate.
+     * If you are using price including tax $priceIncludeTax should be true.
+     *
+     * @param   float $price
+     * @param   float $taxRate
+     * @param   boolean $priceIncludeTax
+     * @param   boolean $round
+     * @return  float
+     */
+	public function calcTaxAmount($price, $taxRate, $priceIncludeTax = false, $round = true)
+    {
+        $taxRate = $taxRate / 100;
+
+        if ($priceIncludeTax) {
+            $amount = $price * (1 - 1 / (1 + $taxRate));
+        } else {
+            $amount = $price * $taxRate;
+        }
+
+        if ($round) {
+            return $this->round($amount);
+        }
+
+        return $amount;
+    }
+
+		/**
+     * Round tax amount
+     *
+     * @param   float $price
+     * @return  float
+     */
+    public function round($price)
+    {
+        return $this->priceCurrencyInterface->round($price);
+    }
+
     /**
      * Get base tax amount
      * @param double $amount
@@ -124,7 +166,10 @@ class Cashondelivery implements CashondeliveryInterface
     {
         $rate = $this->getShippingTaxRate();
 
-        return $amount * ($rate / 100);
+ 				$priceIncludeTax=$this->taxHelper->shippingPriceIncludesTax(null);
+				//error_log('getShippingTaxRate='.$rate.'; $amount='.$amount.'; return='.$this->calcTaxAmount($amount, $rate, $priceIncludeTax));
+        //return $this->calcTaxAmount($amount, $rate, $priceIncludeTax);
+				return $amount * ($rate / 100);
     }
 
     /**

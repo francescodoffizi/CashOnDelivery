@@ -49,7 +49,8 @@ define(
                 // otherwise it will fail. Perhaps there is better way to do this.
                 paymentData = JSON.parse(JSON.stringify(paymentData));
                 delete paymentData['title'];
-
+                delete paymentData['__disableTmpl'];
+                
                 fullScreenLoader.startLoader();
                 
                 if (customer.isLoggedIn()) {

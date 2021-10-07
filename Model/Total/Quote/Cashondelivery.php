@@ -21,7 +21,7 @@
 namespace MSP\CashOnDelivery\Model\Total\Quote;
 
 use Magento\Framework\Pricing\PriceCurrencyInterface;
-use Magento\Quote\Api\PaymentMethodManagementInterface;
+use Magento\Payment\Model\MethodList as PaymentMethodList;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Model\Quote;
@@ -34,11 +34,11 @@ class Cashondelivery extends AbstractTotal
     protected $priceCurrencyInterface;
 
     public function __construct(
-        PaymentMethodManagementInterface $paymentMethodManagement,
+        PaymentMethodList $paymentMethodList,
         PriceCurrencyInterface $priceCurrencyInterface,
         CashondeliveryInterface $cashOnDeliveryInterface
     ) {
-        parent::__construct($paymentMethodManagement);
+        parent::__construct($paymentMethodList);
 
         $this->cashOnDeliveryInterface = $cashOnDeliveryInterface;
         $this->priceCurrencyInterface = $priceCurrencyInterface;

@@ -20,20 +20,21 @@
 
 namespace MSP\CashOnDelivery\Model\Total\Quote;
 
-use Magento\Quote\Api\PaymentMethodManagementInterface;
+use Magento\Payment\Model\MethodList as PaymentMethodList;
 use Magento\Quote\Model\Quote\Address\Total\AbstractTotal as MageAbstractTotal;
 use Magento\Quote\Model\Quote;
+use MSP\CashOnDelivery\Model\Payment;
 
 abstract class AbstractTotal extends MageAbstractTotal
 {
     /**
-     * @var PaymentMethodManagementInterface
+     * @var PaymentMethodList
      */
-    private $paymentMethodManagement;
+    private $paymentMethodList;
 
-    public function __construct(PaymentMethodManagementInterface $paymentMethodManagement)
+    public function __construct(PaymentMethodList $paymentMethodList)
     {
-        $this->paymentMethodManagement = $paymentMethodManagement;
+        $this->paymentMethodList = $paymentMethodList;
     }
 
     /**
@@ -47,11 +48,13 @@ abstract class AbstractTotal extends MageAbstractTotal
         if (!$quote->getId()) {
             return false;
         }
-        $paymentMethodsList = $this->paymentMethodManagement->getList($quote->getId());
-        if ((count($paymentMethodsList) == 1) && (current($paymentMethodsList)->getCode() == 'msp_cashondelivery')) {
+
+        $paymentMethodsList = $this->paymentMethodList->getAvailableMethods($quote);
+        if ((count($paymentMethodsList) == 1) && (current($paymentMethodsList)->getCode() === Payment::CODE)) {
+            //Even if not currently selected, this is the only payment method available.
             return true;
         }
 
-        return ($quote->getPayment()->getMethod() == 'msp_cashondelivery');
+        return ($quote->getPayment()->getMethod() === Payment::CODE);
     }
 }

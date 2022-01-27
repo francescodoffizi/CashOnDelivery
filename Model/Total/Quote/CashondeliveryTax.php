@@ -21,7 +21,7 @@
 namespace MSP\CashOnDelivery\Model\Total\Quote;
 
 use Magento\Framework\Pricing\PriceCurrencyInterface;
-use Magento\Quote\Api\PaymentMethodManagementInterface;
+use Magento\Payment\Model\MethodList as PaymentMethodList;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Api\Data\ShippingAssignmentInterface;
 use Magento\Quote\Model\Quote;
@@ -34,11 +34,11 @@ class CashondeliveryTax extends AbstractTotal
     protected $priceCurrencyInterface;
 
     public function __construct(
-        PaymentMethodManagementInterface $paymentMethodManagement,
+        PaymentMethodList $paymentMethodList,
         PriceCurrencyInterface $priceCurrencyInterface,
         CashondeliveryInterface $cashOnDeliveryInterface
     ) {
-        parent::__construct($paymentMethodManagement);
+        parent::__construct($paymentMethodList);
         $this->cashOnDeliveryInterface = $cashOnDeliveryInterface;
         $this->priceCurrencyInterface = $priceCurrencyInterface;
     }
@@ -80,8 +80,12 @@ class CashondeliveryTax extends AbstractTotal
             $total->setBaseTaxAmount($total->getBaseTaxAmount() + $baseTaxAmount);
             $total->setTaxAmount($total->getTaxAmount() + $taxAmount);
 
-            $total->setBaseGrandTotal($total->getBaseGrandTotal() + $baseTaxAmount);
-            $total->setGrandTotal($total->getGrandTotal() + $taxAmount);
+            if (!$this->cashOnDeliveryInterface->cashondeliveryFeeIncludesTax()) {
+                //If the configured fee does not already include the tax amount, then manually add it to the grand
+                //total
+                $total->setBaseGrandTotal($total->getBaseGrandTotal() + $baseTaxAmount);
+                $total->setGrandTotal($total->getGrandTotal() + $taxAmount);
+            }
         }
 
         /*

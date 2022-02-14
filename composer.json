@@ -1,5 +1,6 @@
 {
     "name": "francescodoffizi/cashondelivery",
+    "version": "1.2.16",
     "description": "",
     "require": {
         "php": "^7.0|^7.1|^7.2",
